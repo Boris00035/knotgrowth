@@ -4,3 +4,6 @@ run:
 build:
     uv build
     uv pip install -e .
+
+init:
+    uv sync
