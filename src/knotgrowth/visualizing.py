@@ -1,0 +1,293 @@
+import matplotlib
+matplotlib.use('WebAgg')
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+import plotly.graph_objects as go
+from matplotlib.patches import Patch
+import matplotlib.colors as mcolors
+
+
+def generate_sigma_matrix(n, diagonal_value, interface_to_background, interface_btw_adj_cells, interface_btw_nonadj_cells):
+    sigma = np.full((n, n), interface_btw_nonadj_cells)
+    np.fill_diagonal(sigma, diagonal_value)
+    sigma[0, :] = interface_to_background
+    sigma[:, 0] = interface_to_background
+    sigma[0, 0] = diagonal_value
+    
+    for i in range(n):
+        if i == 0:
+            continue
+        if i == 1:
+            sigma[1][2] = interface_btw_adj_cells
+            sigma[1][n-1] = interface_btw_adj_cells
+            continue
+        if i == n-1:
+            sigma[n-1][1] = interface_btw_adj_cells
+            sigma[n-1][n-2] = interface_btw_adj_cells
+            continue
+        
+        sigma[i][i-1] = interface_btw_adj_cells
+        sigma[i][i+1] = interface_btw_adj_cells
+        
+    
+    return sigma
+
+
+def get_40_cmap():
+    # Use a well-spaced set of colors from "hsv"
+    base = plt.cm.get_cmap("hsv", 40)  # 40 evenly spaced hues
+    colors = [base(i) for i in range(40)]        
+    random.shuffle(colors)
+    return mcolors.ListedColormap(colors, name="40colors")
+
+cmap = get_40_cmap()
+
+
+def visualize_3d_slices(grid, iteration, num_labels, view=(30, 30), figsize=(12,12), cube_size=1.0):
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_subplot(projection="3d")
+
+    # Use tab20 colormap
+    #cmap = plt.get_cmap("tab20", num_labels)
+    
+    
+
+    # Legend elements for labels
+    legend_elements = []
+
+    for label in range(2, num_labels + 1):  # Skip background (label 1)
+
+        coords = np.column_stack(np.nonzero(grid == label))
+
+        if len(coords) == 0:
+            continue
+
+        color = cmap((label - 2) % 20)
+
+        # Shift coordinates to center the cubes at (x, y, z)
+        x = coords[:, 0] - cube_size / 2
+        y = coords[:, 1] - cube_size / 2
+        z = coords[:, 2] - cube_size / 2
+
+        ax.bar3d(
+            x, y, z,
+            dx=cube_size, dy=cube_size, dz=cube_size,
+            color=color, alpha=0.9, shade=True
+        )
+
+        legend_elements.append(Patch(facecolor=color, label=f"Label {label}"))
+
+    ax.set_xlim(0, grid.shape[0])
+    ax.set_ylim(0, grid.shape[1])
+    ax.set_zlim(0, grid.shape[2])
+    ax.set_box_aspect([1, 1, 1])  # Equal aspect ratio
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+
+    ax.legend(handles=legend_elements, loc="upper right", bbox_to_anchor=(1.2, 1.0))
+    plt.tight_layout()
+    ax.view_init(elev=view[0], azim=view[1])
+    plt.pause(0.1)
+    plt.close(fig)
+
+
+# Example usage:  plot_solid_voxels(grid_smooth, num_labels=21)
+
+# DOUBLE PLOTS:
+def plot_solid_voxels(grid, num_labels):
+    """
+    Create a 3D voxel plot with solid squares, no transparency, and no black edges
+    """
+    # Get tab20 colors
+    tab20_colors = plt.get_cmap("tab20").colors
+    colors = ['rgb(%d,%d,%d)' % (r*255, g*255, b*255) for (r, g, b) in tab20_colors]
+    
+    fig = go.Figure()
+    
+    # Create a separate trace for each label
+    for label in range(2, num_labels + 1):
+        mask = (grid == label)
+        if not np.any(mask):
+            continue
+            
+        # Get coordinates
+        x, y, z = np.where(mask)
+        
+        fig.add_trace(go.Scatter3d(
+            x=x,
+            y=y,
+            z=z,
+            mode='markers',
+            marker=dict(
+                size=8,  # Size of the squares
+                color=colors[(label-2-1) % 20],  # Solid color for this label
+                opacity=1.0,  # Fully opaque
+                symbol='square',  # Square markers
+                line=dict(width=0),  # No border line
+            ),
+            name=f'Label {label}'
+        ))
+    
+    # Set layout properties
+    fig.update_layout(
+        scene=dict(
+            xaxis=dict(range=[0, grid.shape[0]], autorange=False),
+            yaxis=dict(range=[0, grid.shape[1]], autorange=False),
+            zaxis=dict(range=[0, grid.shape[2]], autorange=False),
+            aspectmode='cube',
+            camera=dict(
+                eye=dict(x=1.5, y=1.5, z=1.5)  # Initial camera position
+            )
+        ),
+        width=800,
+        height=600,
+        autosize=True,
+        margin=dict(l=0, r=0, b=0, t=0),
+        scene_camera=dict(
+            up=dict(x=0, y=0, z=1),
+            center=dict(x=0, y=0, z=0),
+            eye=dict(x=1.5, y=1.5, z=1.5)
+        )
+    )
+    
+    # Create frames for smooth rotation
+    frames = []
+    for t in range(0, 360, 2):
+        frames.append(go.Frame(
+            layout=dict(
+                scene_camera=dict(
+                    eye=dict(
+                        x=2 * np.cos(np.radians(t)),
+                        y=2 * np.sin(np.radians(t)),
+                        z=1.5
+                    )
+                )
+            )
+        ))
+    
+    fig.frames = frames
+    
+    # Add rotation button
+    fig.update_layout(
+        updatemenus=[dict(
+            type="buttons",
+            buttons=[dict(
+                label="Play",
+                method="animate",
+                args=[None, {
+                    "frame": {"duration": 50},
+                    "fromcurrent": True,
+                    "mode": "immediate",
+                    "transition": {"duration": 0}
+                }]
+            )]
+        )]
+    )
+    
+    fig.show()
+    plt.show()
+
+def skew(v):
+    return np.array([[0, -v[2], v[1]],
+                     [v[2], 0, -v[0]],
+                     [-v[1], v[0], 0]])
+
+def rotation_matrix_from_vectors(a, b):
+    a = a / np.linalg.norm(a)
+    b = b / np.linalg.norm(b)
+    c = np.dot(a, b)
+    if np.allclose(c, 1.0):
+        return np.eye(3)
+    if np.allclose(c, -1.0):
+        axis = np.cross(a, np.array([1,0,0]))
+        if np.linalg.norm(axis) < 1e-6:
+            axis = np.cross(a, np.array([0,1,0]))
+        axis /= np.linalg.norm(axis)
+        return -np.eye(3) + 2*np.outer(axis, axis)
+    v = np.cross(a, b)
+    s = np.linalg.norm(v)
+    K = skew(v)
+    return np.eye(3) + K + K @ K * ((1 - c)/(s**2))
+
+def stereographic_projection(points, pole):
+    if pole == "north":
+        denom = 1 - points[:,2]
+    else:  # pole == "south"
+        denom = 1 + points[:,2]
+    x = points[:,0] / denom
+    y = points[:,1] / denom
+    return np.vstack([x,y]).T
+
+def split_and_project(label_grid, center, n):
+    # voxel coords for label=2
+    coords = np.argwhere(label_grid == 2).astype(float)
+    rel = coords - center
+    unit = rel / np.linalg.norm(rel, axis=1)[:,None]
+
+    # rotate n → z-axis
+    R = rotation_matrix_from_vectors(n, np.array([0,0,1]))
+    rot = unit @ R.T
+
+    # split hemispheres
+    upper = rot[rot[:,2] >= 0]   # z ≥ 0
+    lower = rot[rot[:,2] < 0]
+
+    upper_proj = stereographic_projection(upper, pole="south")
+    lower_proj = stereographic_projection(lower, pole="north")
+
+    return upper_proj, lower_proj
+
+
+def plot_stereographic_projection(lined_grid):
+    N = 70
+
+    griddd = np.copy(lined_grid)
+    center = np.array([N/2, N/2, N/2])
+
+    n = np.array([1, -0.5, 0])
+
+    upper_proj, lower_proj = split_and_project(griddd, center, n)
+
+    # Plot side by side
+    fig, (ax1, ax2) = plt.subplots(1,2, figsize=(10,5))
+    ax1.scatter(upper_proj[:,0], upper_proj[:,1], s=6, c="C0")
+    ax1.set_title("Upper hemisphere")
+    ax1.set_aspect("equal")
+
+    ax2.scatter(lower_proj[:,0], lower_proj[:,1], s=6, c="C1")
+    ax2.set_title("Lower hemisphere")
+    ax2.set_aspect("equal")
+
+    plt.show()
+
+def print_volume_result(region_history, volume_conservation, total_voxels, num_labels):
+    print("\nVolume conservation report:")
+    #np.save(f"unknotmediaa_{dtdt}.npy", next_grid) # save here
+
+    for i, conserved in enumerate(volume_conservation):
+        if not conserved:
+            total_vol = sum(region_history[i]['volumes'].values())
+            print(f"Iteration {i}: Volume mismatch! {total_vol} vs {total_voxels}")
+        else:
+            print(f"Iteration {i}: Volume conserved")
+
+    print("\nFinal volumes:")
+    for lbl in range(1, num_labels + 1):
+        vol = region_history[-1]['volumes'].get(lbl, 0)
+        print(f"Label {lbl}: {vol} voxels")
+
+    plt.figure(figsize=(10, 6))
+    for lbl in range(1, num_labels + 1):
+        vols = [h['volumes'].get(lbl, 0) for h in region_history]
+        plt.plot(vols, label=f"Label {lbl}")
+
+    plt.title("Volume Evolution")
+    plt.xlabel("Iteration")
+    plt.ylabel("Volume")
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+    print("3D Simulation complete")
