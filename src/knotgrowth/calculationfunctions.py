@@ -3,6 +3,31 @@ from scipy.ndimage import binary_dilation, label
 import heapq
 from numpy.fft import fftn, ifftn
 
+def generate_sigma_matrix(n, diagonal_value, interface_to_background, interface_btw_adj_cells, interface_btw_nonadj_cells):
+    sigma = np.full((n, n), interface_btw_nonadj_cells)
+    np.fill_diagonal(sigma, diagonal_value)
+    sigma[0, :] = interface_to_background
+    sigma[:, 0] = interface_to_background
+    sigma[0, 0] = diagonal_value
+    
+    for i in range(n):
+        if i == 0:
+            continue
+        if i == 1:
+            sigma[1][2] = interface_btw_adj_cells
+            sigma[1][n-1] = interface_btw_adj_cells
+            continue
+        if i == n-1:
+            sigma[n-1][1] = interface_btw_adj_cells
+            sigma[n-1][n-2] = interface_btw_adj_cells
+            continue
+        
+        sigma[i][i-1] = interface_btw_adj_cells
+        sigma[i][i+1] = interface_btw_adj_cells
+        
+    
+    return sigma
+
 def gaussian_kernel_3d(shape, dt):
     depth, height, width = shape
     z = np.arange(depth)
@@ -78,7 +103,7 @@ def enforce_connectivity_3d(grid, num_labels, min_size=5):
             
             if len(counts) > 0:
                 largest_idx = component_ids[np.argmax(counts)]
-                main_component = (labeled == largest_idx)
+                # main_component = (labeled == largest_idx)
                 
                 for comp_id, count in zip(component_ids, counts):
                     if comp_id != largest_idx and count < min_size:
@@ -134,29 +159,29 @@ def auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon
         currentVolume.fill(0)
         heaps = [[] for _ in range(nbCells)]
         
-        l = 0
+        lbl = 0
         while nbAssignedNodes < nbNodes:
             # Find next unassigned node
-            while l < nbNodes and isAssigned[l] != -1:
-                l += 1
-            if l >= nbNodes:
-                l = 0
-                while l < nbNodes and isAssigned[l] != -1:
-                    l += 1
-                if l >= nbNodes:
+            while lbl < nbNodes and isAssigned[lbl] != -1:
+                lbl += 1
+            if lbl >= nbNodes:
+                lbl = 0
+                while lbl < nbNodes and isAssigned[lbl] != -1:
+                    lbl += 1
+                if lbl >= nbNodes:
                     break  # Critical fix: break outer loop
             
             pStar = 0
             pNext = 1
-            valStar = phi[pStar, l] - price[pStar]
-            valNext = phi[pNext, l] - price[pNext]
+            valStar = phi[pStar, lbl] - price[pStar]
+            valNext = phi[pNext, lbl] - price[pNext]
             
             if valStar < valNext:
                 pStar, pNext = pNext, pStar
                 valStar, valNext = valNext, valStar
             
             for p in range(2, nbCells):
-                val = phi[p, l] - price[p]
+                val = phi[p,lbl] - price[p]
                 if val > valStar:
                     pNext = pStar
                     valNext = valStar
@@ -166,8 +191,8 @@ def auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon
                     pNext = p
                     valNext = val
             
-            bid_val = epsilon + phi[pStar, l] - phi[pNext, l] + price[pNext]
-            bid[l] = bid_val
+            bid_val = epsilon + phi[pStar,lbl] - phi[pNext,lbl] + price[pNext]
+            bid[lbl] = bid_val
             
             if currentVolume[pStar] == volumes[pStar]:
                 if heaps[pStar]:  # Critical fix: check heap not empty
@@ -175,14 +200,14 @@ def auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon
                     isAssigned[evicted_node] = -1
                     nbAssignedNodes -= 1
                     
-                    heapq.heappush(heaps[pStar], (bid_val, l))
-                    isAssigned[l] = pStar
+                    heapq.heappush(heaps[pStar], (bid_val,lbl))
+                    isAssigned[lbl] = pStar
                     
                     if heaps[pStar]:
                         price[pStar] = heaps[pStar][0][0]
             else:
-                heapq.heappush(heaps[pStar], (bid_val, l))
-                isAssigned[l] = pStar
+                heapq.heappush(heaps[pStar], (bid_val,lbl))
+                isAssigned[lbl] = pStar
                 currentVolume[pStar] += 1
                 nbAssignedNodes += 1
                 
@@ -206,7 +231,7 @@ def auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon
 def boundary_of_grid(used_grid):
     # Create a copy of the grid
     
-    grid_size = used_grid.shape[0]  # Assuming grid is cube-shaped
+    # grid_size = used_grid.shape[0]  # Assuming grid is cube-shaped
 
     # 1. Create a padded version of the grid (add 1-layer of background around edges)
     padded_grid = np.pad(used_grid, 1, mode='constant', constant_values=1)

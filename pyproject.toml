@@ -22,6 +22,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 package-dir = {"" = "src"}
 ext-modules = [
-    {name = "knotgrowth.simulationloop", sources = ["src/knotgrowth/simulationloop.pyx"]},
-    {name = "knotgrowth.calculationfunctions", sources = ["src/knotgrowth/calculationfunctions.pyx"]},
+    {name = "knotgrowth.simulationloop", sources = ["src/knotgrowth/simulationloop.py"]},
+    {name = "knotgrowth.calculationfunctions", sources = ["src/knotgrowth/calculationfunctions.py"]},
 ]

@@ -8,32 +8,6 @@ from matplotlib.patches import Patch
 import matplotlib.colors as mcolors
 
 
-def generate_sigma_matrix(n, diagonal_value, interface_to_background, interface_btw_adj_cells, interface_btw_nonadj_cells):
-    sigma = np.full((n, n), interface_btw_nonadj_cells)
-    np.fill_diagonal(sigma, diagonal_value)
-    sigma[0, :] = interface_to_background
-    sigma[:, 0] = interface_to_background
-    sigma[0, 0] = diagonal_value
-    
-    for i in range(n):
-        if i == 0:
-            continue
-        if i == 1:
-            sigma[1][2] = interface_btw_adj_cells
-            sigma[1][n-1] = interface_btw_adj_cells
-            continue
-        if i == n-1:
-            sigma[n-1][1] = interface_btw_adj_cells
-            sigma[n-1][n-2] = interface_btw_adj_cells
-            continue
-        
-        sigma[i][i-1] = interface_btw_adj_cells
-        sigma[i][i+1] = interface_btw_adj_cells
-        
-    
-    return sigma
-
-
 def get_40_cmap():
     # Use a well-spaced set of colors from "hsv"
     base = plt.cm.get_cmap("hsv", 40)  # 40 evenly spaced hues
@@ -289,5 +263,3 @@ def print_volume_result(region_history, volume_conservation, total_voxels, num_l
     plt.legend()
     plt.tight_layout()
     plt.show()
-
-    print("3D Simulation complete")
