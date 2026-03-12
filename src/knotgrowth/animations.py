@@ -24,7 +24,7 @@ def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, ani
 
     animation_input = "animations/" + input.value
 
-    # assert len(os.listdir(animation_input)) == NOF, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
+    assert len(os.listdir(animation_input)) == NOF, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
 
     print(f"parameters: NOI: {NOI}, grid_size: {grid_size}")
     
@@ -88,7 +88,7 @@ def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, ani
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
-    for frame in trange(32, NOF + 1, desc='frame loop'):
+    for frame in trange(1, NOF + 1, desc='frame loop'):
         points = np.load(animation_input + f"frame{frame}" + ".npy")
         lined_grid = gr.get_boundary_after_growth(points, NOI, num_cell_segments, grid_size)
         
