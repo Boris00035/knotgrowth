@@ -6,8 +6,8 @@ import numpy as np
 NOF = 40
 
 
-object_to_save = "unknot/twist/"
-selected_object = bpy.data.objects.get("twist")
+object_to_save = "unknot/double_twist/"
+selected_object = bpy.data.objects.get("double_twist")
 
 location_to_save = r"/home/boris/Documents/Universiteit_Utrecht/BscScriptie/knotgrowth/animations/" + object_to_save
 #location_to_save = r"E:/Documents/Universiteit_Utrecht/BscScriptie/knotgrowth/src/knotgrowth/animations/" + object_to_save
