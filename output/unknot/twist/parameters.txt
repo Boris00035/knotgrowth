@@ -1,0 +1,4 @@
+grid_size = 70
+num_iterations = 50
+num_cell_segments = 30 # How many colours we consider, without the outside
+num_frames = 40

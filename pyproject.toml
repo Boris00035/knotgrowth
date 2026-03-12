@@ -1,0 +1,30 @@
+[project]
+name = "knotgrowth"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = "==3.11.13"
+dependencies = [
+    "bpy>=4.4.0",
+    "cython>=3.2.4",
+    "imageio[ffmpeg]>=2.37.3",
+    "kaleido>=1.2.0",
+    "matplotlib>=3.10.8",
+    "numpy==1.26.4",
+    "pandas>=3.0.1",
+    "plotly>=6.5.2",
+    "scipy>=1.17.0",
+    "tornado>=6.5.4",
+    "tqdm>=4.67.3",
+]
+
+[build-system]
+requires = ["setuptools", "cython"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+ext-modules = [
+    {name = "knotgrowth.simulationloop", sources = ["src/knotgrowth/simulationloop.py"]},
+    {name = "knotgrowth.calculationfunctions", sources = ["src/knotgrowth/calculationfunctions.py"]},
+]
