@@ -34,8 +34,7 @@ def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_ite
     grid_shape = (grid_size,grid_size,grid_size)
     next_grid = np.empty(grid_shape) 
 
-    for iter_num in range(num_iterations):
-    # for iter_num in trange(num_iterations, desc='simulation loop'):
+    for iter_num in trange(num_iterations, desc='simulation loop'):
 
         if target_volumes[5] > 170: #115 # smaller grid
 
@@ -59,7 +58,7 @@ def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_ite
             break
 
         # Update target volumes
-        for label_id in target_volumes:
+        for label_id in range(1, num_labels + 1):
             if label_id == 1:
                 target_volumes[label_id] = target_volumes[label_id] - volume_growth_rate * (num_labels - 1)
             else:
@@ -88,9 +87,7 @@ def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_ite
         alpha = 5.0
         epsilonBar = 1e-6
 
-        next_grid = calc.auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon0, epsilonBar, alpha) # 71.6 sec (is ran num_iterations amount of times)
-
-        current_grid = next_grid
+        current_grid = calc.auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon0, epsilonBar, alpha) # 71.6 sec (is ran num_iterations amount of times)
 
         # Calculate volumes
         # volumes = calc.calculate_3d_volumes(current_grid, num_labels)
