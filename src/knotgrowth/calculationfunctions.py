@@ -58,7 +58,6 @@ def gaussian_kernel_3d(shape, dt):
 def psi_3d_optimized(grid, sigma_matrix, dt):
     depth, height, width = grid.shape
     grid_size = depth * height * width
-    print(grid)
     unique_labels = np.unique(grid)
     print(unique_labels)
 
@@ -131,7 +130,7 @@ def dilate_boundary_3d(grid: npt.NDArray[np.int16], lbl: np.int16, iterations: i
 #                                 connected[z, y, x] = new_label
 #     return connected
 
-@cython.cfunc
+@cython.ccall
 def auction_assignment_3d(  psies, 
                             target_volumes, 
                             grid_shape: tuple[cython.int,cython.int,cython.int], 
