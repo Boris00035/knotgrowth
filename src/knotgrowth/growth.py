@@ -5,7 +5,7 @@ import knotgrowth.calculationfunctions as calc
 
 import numpy as np
 
-def get_boundary_after_growth(starting_points, num_iterations, num_cell_segments, grid_size):
+def get_boundary_after_growth(starting_points, num_iterations, num_cell_segments, grid_size, knot_relaxation=False):
 
     # generate sigma matrix
     scaling = 0.6    # The overall scaling of the initial knot. Choose between 0.55-0.8    
@@ -27,8 +27,11 @@ def get_boundary_after_growth(starting_points, num_iterations, num_cell_segments
 
 
     # This makes the knot into a good shape, not needed if the shape is already as we want
-    # pts_smooth = gg.relax_knot(starting_points, original_segment_lengths) # This function takes 27 sec
-    pts_smooth = starting_points
+    if knot_relaxation:
+        pts_smooth = gg.relax_knot(starting_points, original_segment_lengths) # This function takes 27 sec
+    else:
+        pts_smooth = starting_points
+
 
     # Step 2, generate grid
     if not np.allclose(pts_smooth[0], pts_smooth[-1], atol=1e-3):

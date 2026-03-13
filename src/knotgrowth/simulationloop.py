@@ -1,8 +1,9 @@
 import numpy as np
 from scipy.ndimage import distance_transform_edt
-import knotgrowth.calculationfunctions as calc
-# from knotgrowth.visualizing import visualize_3d_slices
 from tqdm.auto import trange
+import time
+
+import knotgrowth.calculationfunctions as calc
 
 def simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation):
     current_grid = np.copy(label_grid)   # Insert the initial grid here
@@ -31,10 +32,11 @@ def simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_itera
     dt = 0.4*growth_coeff
     volume_growth_rate = 20*growth_coeff
 
-    grid_shape = [grid_size,grid_size,grid_size]
+    grid_shape = (grid_size,grid_size,grid_size)
     next_grid = np.empty(grid_shape) 
 
-    for iter_num in trange(num_iterations, desc='simulation loop'):
+    for iter_num in range(num_iterations):
+    # for iter_num in trange(num_iterations, desc='simulation loop'):
 
         if target_volumes[5] > 170: #115 # smaller grid
 
@@ -69,7 +71,7 @@ def simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_itera
 
         # Apply connectivity preservation
         for lbl in range(1, num_labels + 1): # 0.18 sec
-            dilated = calc.dilate_boundary_3d(current_grid, lbl, connectivity_padding)
+            dilated = calc.dilate_boundary_3d(current_grid, np.int16(lbl), connectivity_padding)
             # Apply penalty uniformly to non-boundary points
             psies[lbl][~dilated] += mask_penalty
 
@@ -86,6 +88,7 @@ def simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_itera
         epsilon0 = 10.0
         alpha = 5.0
         epsilonBar = 1e-6
+
         next_grid = calc.auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon0, epsilonBar, alpha) # 71.6 sec (is ran num_iterations amount of times)
 
         current_grid = next_grid

@@ -1,7 +1,10 @@
 import numpy as np
 from scipy.ndimage import binary_dilation, label
 import heapq
+import numpy.typing as npt
+import typing as typ
 from numpy.fft import fftn, ifftn
+import cython
 
 def generate_sigma_matrix(n, diagonal_value, interface_to_background, interface_btw_adj_cells, interface_btw_nonadj_cells):
     sigma = np.full((n, n), interface_btw_nonadj_cells)
@@ -55,8 +58,10 @@ def gaussian_kernel_3d(shape, dt):
 def psi_3d_optimized(grid, sigma_matrix, dt):
     depth, height, width = grid.shape
     grid_size = depth * height * width
+    print(grid)
     unique_labels = np.unique(grid)
-    
+    print(unique_labels)
+
     kernel_fft = gaussian_kernel_3d((depth, height, width), dt)
     
     chis = {}
@@ -82,50 +87,60 @@ def psi_3d_optimized(grid, sigma_matrix, dt):
     return psies
 
 
-def dilate_boundary_3d(grid, lbl, iterations):
-    mask = (grid == lbl)
-    struct = np.zeros((3, 3, 3), dtype=bool)
+def dilate_boundary_3d(grid: npt.NDArray[np.int16], lbl: np.int16, iterations: int) -> npt.NDArray[np.bool_]:
+    mask: npt.NDArray[np.bool_] = (grid == lbl)
+    struct = np.zeros((3, 3, 3), dtype=np.bool_)
     struct[1, 1, :] = True
     struct[1, :, 1] = True
     struct[:, 1, 1] = True
-    return binary_dilation(mask, structure=struct, iterations=iterations)
+    return typ.cast(npt.NDArray[np.bool_], binary_dilation(mask, structure=struct, iterations=iterations))
 
-def enforce_connectivity_3d(grid, num_labels, min_size=5):
-    connected = grid.copy()
-    for lbl in range(1, num_labels + 1):
-        mask = (grid == lbl)
-        labeled, num_features = label(mask)
+# This has a type error since the type of grid is not known
+# def enforce_connectivity_3d(grid, num_labels, min_size=5):
+#     connected = grid.copy()
+#     for lbl in range(1, num_labels + 1):
+#         mask = (grid == lbl)
+#         labeled, num_features = label(mask)
         
-        if num_features > 0:
-            component_ids, counts = np.unique(labeled, return_counts=True)
-            component_ids = component_ids[1:]
-            counts = counts[1:]
+#         if num_features > 0:
+#             component_ids, counts = np.unique(labeled, return_counts=True)
+#             component_ids = component_ids[1:]
+#             counts = counts[1:]
             
-            if len(counts) > 0:
-                largest_idx = component_ids[np.argmax(counts)]
-                # main_component = (labeled == largest_idx)
+#             if len(counts) > 0:
+#                 largest_idx = component_ids[np.argmax(counts)]
+#                 # main_component = (labeled == largest_idx)
                 
-                for comp_id, count in zip(component_ids, counts):
-                    if comp_id != largest_idx and count < min_size:
-                        coords = np.argwhere(labeled == comp_id)
-                        for coord in coords:
-                            z, y, x = coord
-                            neighbors = []
-                            for dz, dy, dx in [(-1,0,0), (1,0,0), (0,-1,0), (0,1,0), (0,0,-1), (0,0,1)]:
-                                nz, ny, nx = z+dz, y+dy, x+dx
-                                if (0 <= nz < grid.shape[0] and 
-                                    0 <= ny < grid.shape[1] and 
-                                    0 <= nx < grid.shape[2]):
-                                    neighbor_label = grid[nz, ny, nx]
-                                    if neighbor_label != lbl and neighbor_label > 0:
-                                        neighbors.append(neighbor_label)
+#                 for comp_id, count in zip(component_ids, counts):
+#                     if comp_id != largest_idx and count < min_size:
+#                         coords = np.argwhere(labeled == comp_id)
+#                         for coord in coords:
+#                             z, y, x = coord
+#                             neighbors = []
+#                             for dz, dy, dx in [(-1,0,0), (1,0,0), (0,-1,0), (0,1,0), (0,0,-1), (0,0,1)]:
+#                                 nz, ny, nx = z+dz, y+dy, x+dx
+#                                 if (0 <= nz < grid.shape[0] and 
+#                                     0 <= ny < grid.shape[1] and 
+#                                     0 <= nx < grid.shape[2]):
+#                                     neighbor_label = grid[nz, ny, nx]
+#                                     if neighbor_label != lbl and neighbor_label > 0:
+#                                         neighbors.append(neighbor_label)
                             
-                            if neighbors:
-                                new_label = max(set(neighbors), key=neighbors.count)
-                                connected[z, y, x] = new_label
-    return connected
+#                             if neighbors:
+#                                 new_label = max(set(neighbors), key=neighbors.count)
+#                                 connected[z, y, x] = new_label
+#     return connected
 
-def auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon0, epsilonBar, alpha):
+@cython.cfunc
+def auction_assignment_3d(  psies, 
+                            target_volumes, 
+                            grid_shape: tuple[cython.int,cython.int,cython.int], 
+                            num_labels: cython.int, 
+                            epsilon0: cython.float, 
+                            epsilonBar: cython.float, 
+                            alpha: cython.float):
+    
+
     depth, height, width = grid_shape
     nbNodes = depth * height * width
     nbCells = num_labels

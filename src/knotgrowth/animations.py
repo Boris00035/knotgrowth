@@ -21,7 +21,7 @@ class possible_inputs(Enum):
     trefoil_twist = "trefoil/twist/"
 
 # maybe create a dict like "simulation parameters"
-def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, animation_duration=0):
+def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, animation_duration=0, save_output=True, show_output=True):
 
     animation_input = "animations/" + input.value
 
@@ -85,7 +85,7 @@ def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, ani
     )
 
     animation_frames = []
-    output_folder = "output/" + "raw/" + animation_input + datetime.today().strftime('%Y-%m-%d') + "/"
+    output_folder = "output/" + "raw/" + animation_input + datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + "/"
     
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -105,12 +105,15 @@ def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, ani
             z=boundary_points[2],
         )
 
-        np.save(output_folder + f"frame{frame}" + ".npy", boundary_points)
+        if save_output:
+            np.save(output_folder + f"frame{frame}" + ".npy", boundary_points)
+        
         animation_frames.append(go.Frame(data = [frame_data], name=str(len(animation_frames))))
 
     fig.frames = animation_frames
 
-    fig.show()
+    if show_output:
+        fig.show()
 
 def create_boundary_animation_3d_from_files(grid_size, input, animation_duration=0):
     # Minus 1 for the parameters.txt file
