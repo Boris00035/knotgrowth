@@ -16,6 +16,7 @@ class possible_inputs(Enum):
     unknot_circle = "unknot/circle/"
     unknot_dent = "unknot/dent/"
     unknot_twist = "unknot/twist/"
+    unknot_double_twist = "unknot/double_twist/"
     trefoil_dent = "trefoil/dent/"
     trefoil_twist = "trefoil/twist/"
 
@@ -24,7 +25,8 @@ def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, ani
 
     animation_input = "animations/" + input.value
 
-    assert len(os.listdir(animation_input)) == NOF, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
+    # + 1 because of the animation folder (the blender rendered animation of the changing knot)
+    assert len(os.listdir(animation_input)) == NOF + 1, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
 
     print(f"parameters: NOI: {NOI}, grid_size: {grid_size}")
     
