@@ -5,8 +5,7 @@ import time
 
 import knotgrowth.calculationfunctions as calc
 
-def simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation):
-    current_grid = np.copy(label_grid)   # Insert the initial grid here
+def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation):
                 
     # visualize_3d_slices(calc.boundary_of_grid(current_grid), 0, num_labels + 1, view=(10,10), figsize=(15,15))
     print(f"Euler characteristic: {calc.compute_surface_euler_characteristic(current_grid, background_label=1)}")
@@ -14,15 +13,15 @@ def simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_itera
     target_volumes = calc.calculate_3d_volumes(current_grid, num_labels)
 
     # seed regions code
-    seed_masks = {label: np.zeros_like(label_grid, dtype=bool) for label in range(2, num_labels + 1)}
+    seed_masks = {label: np.zeros_like(current_grid, dtype=bool) for label in range(2, num_labels + 1)}
 
     for label in range(2, num_labels + 1): # This for loop takes 111 seconds (distance_transform_edt takes 0.01 sec and is run approx num_labels*len(coords) times)
-        coords = np.argwhere(label_grid == label)
+        coords = np.argwhere(current_grid == label)
         if len(coords) > 0:
             # num = 40 means there are 40 seed points at each cell region (just choose arbitrarily large)
             selected_indices = coords[np.linspace(0, len(coords) - 1, num=200, dtype=int)]
             for z0, y0, x0 in selected_indices:
-                mask = np.zeros_like(label_grid, dtype=bool)
+                mask = np.zeros_like(current_grid, dtype=bool)
                 mask[z0, y0, x0] = True
                 dist_map = distance_transform_edt(~mask)
                 seed_masks[label] |= (dist_map <= penalty_radius)
