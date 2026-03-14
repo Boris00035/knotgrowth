@@ -58,9 +58,7 @@ def gaussian_kernel_3d(shape, dt):
 def psi_3d_optimized(grid, sigma_matrix, dt):
     depth, height, width = grid.shape
     grid_size = depth * height * width
-    print(grid)
     unique_labels = np.unique(grid)
-    print(unique_labels)
 
     kernel_fft = gaussian_kernel_3d((depth, height, width), dt)
     
@@ -131,9 +129,9 @@ def dilate_boundary_3d(grid: npt.NDArray[np.int16], lbl: np.int16, iterations: i
 #                                 connected[z, y, x] = new_label
 #     return connected
 
-@cython.cfunc
+@cython.ccall
 def auction_assignment_3d(  psies, 
-                            target_volumes, 
+                            target_volumes: npt.NDArray[np.float64], 
                             grid_shape: tuple[cython.int,cython.int,cython.int], 
                             num_labels: cython.int, 
                             epsilon0: cython.float, 
@@ -389,7 +387,7 @@ def compute_surface_euler_characteristic(grid, background_label=1):
     return V - E + F
 
 def calculate_3d_volumes(grid, num_labels):
-    volumes = {}
+    volumes = np.empty(num_labels + 1)
     for lbl in range(1, num_labels + 1):
         volumes[lbl] = np.sum(grid == lbl)
     return volumes
