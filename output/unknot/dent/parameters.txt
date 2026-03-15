@@ -1,4 +1,0 @@
-grid_size = 70
-num_iterations = 50
-num_cell_segments = 30
-num_frames = 20

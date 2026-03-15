@@ -77,6 +77,7 @@ def psi_3d_optimized(grid, sigma_matrix, dt):
     
     psies = {}
     for i, target in enumerate(unique_labels):
+        print(target)
         ft_phi = fftn(phi_combined[i])
         ft_phi = ft_phi * kernel_fft / grid_size  # Correct normalization
         psi = np.real(ifftn(ft_phi))

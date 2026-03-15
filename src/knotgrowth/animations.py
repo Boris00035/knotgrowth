@@ -13,15 +13,15 @@ import knotgrowth.growth as gr
 
 
 class possible_inputs(Enum):
-    unknot_circle = "unknot/circle/"
-    unknot_dent = "unknot/dent/"
-    unknot_twist = "unknot/twist/"
-    unknot_double_twist = "unknot/double_twist/"
-    trefoil_dent = "trefoil/dent/"
-    trefoil_twist = "trefoil/twist/"
+    unknot_circle_boundary = "unknot/circle/"
+    unknot_dent_boundary = "unknot/dent/"
+    unknot_twist_boundary = "unknot/twist/"
+    unknot_double_twist_boundary = "unknot/double_twist/"
+    # trefoil_dent_boundary = "trefoil/dent/boundary/"
+    # trefoil_twist_boundary = "trefoil/twist/boundary/"
 
-# maybe create a dict like "simulation parameters"
-def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, animation_duration=0, save_output=True, show_output=True):
+
+def generate_points(grid_size, NOI, NOF, num_cell_segments, input, save_output=True):
 
     animation_input = "animations/" + input.value
 
@@ -30,61 +30,6 @@ def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, ani
 
     print(f"parameters: NOI: {NOI}, grid_size: {grid_size}")
     
-    fig = go.Figure(data = [go.Scatter3d(
-            x=[0],
-            y=[0],
-            z=[0],
-            mode='markers',
-            marker=dict(
-                size=8,  # Size of the squares
-                opacity=1.0,  # Fully opaque
-                symbol='square',  # Square markers
-                line=dict(width=0),  # No border line
-            ),
-            name="boundary"
-        )])
-    
-    fig.update_layout(
-        scene=dict(
-            xaxis=dict(range=[0, grid_size], autorange=False),
-            yaxis=dict(range=[0, grid_size], autorange=False),
-            zaxis=dict(range=[0, grid_size], autorange=False),
-            aspectmode='cube',
-            camera=dict(
-                eye=dict(x=1.5, y=1.5, z=1.5)  # Initial camera position
-            )
-        ),
-        width=1080,
-        height=1080,
-        autosize=True,
-        margin=dict(l=0, r=0, b=0, t=0),
-        scene_camera=dict(
-            up=dict(x=0, y=0, z=1),
-            center=dict(x=0, y=0, z=0),
-            eye=dict(x=1.5, y=1.5, z=1.5)
-        )
-    )
-
-    fig.update_layout(
-        updatemenus=[dict(
-            type="buttons",
-            buttons=[dict(label="Play",
-                          method="animate",
-                          args=[None])],
-        )],
-        sliders=[{
-            "steps": [
-                {
-                    "method": "animate",
-                    "args": [[str(k)], dict(mode="immediate", frame=dict(duration=animation_duration, redraw=True))],
-                    "label": str(k)
-                }
-                for k in range(1, NOF + 1)
-            ]
-        }]
-    )
-
-    animation_frames = []
     output_folder = "output/" + "raw/" + animation_input + datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + "/"
     
     if not os.path.exists(output_folder):
@@ -107,19 +52,46 @@ def create_boundary_animation(grid_size, NOI, NOF, num_cell_segments, input, ani
 
         if save_output:
             np.save(output_folder + f"frame{frame}" + ".npy", boundary_points)
+
+
+def generate_boundary_points(grid_size, NOI, NOF, num_cell_segments, input, save_output=True):
+
+    animation_input = "animations/" + input.value
+
+    # + 1 because of the animation folder (the blender rendered animation of the changing knot)
+    assert len(os.listdir(animation_input)) == NOF + 1, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
+
+    print(f"parameters: NOI: {NOI}, grid_size: {grid_size}")
+    
+    output_folder = "output/" + "raw/" + animation_input + datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + "/"
+    
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    for frame in trange(1, NOF + 1, desc='frame loop'):
+        points = np.load(animation_input + f"frame{frame}" + ".npy")
+        lined_grid = gr.get_boundary_after_growth(points, NOI, num_cell_segments, grid_size)
         
-        animation_frames.append(go.Frame(data = [frame_data], name=str(len(animation_frames))))
+        mask = (lined_grid == 2)
+    
+        boundary_points = np.where(mask)
+        
+        frame_data = dict(
+            type="scatter3d",
+            x=boundary_points[0],
+            y=boundary_points[1],
+            z=boundary_points[2],
+        )
 
-    fig.frames = animation_frames
+        if save_output:
+            np.save(output_folder + f"frame{frame}" + ".npy", boundary_points)
 
-    if show_output:
-        fig.show()
 
-def create_boundary_animation_3d_from_files(grid_size, input, animation_duration=0):
+def view_boundary_animation_3d_from_files(input, animation_duration=0, save_video=False, save_html=False):
+
+    output_data_location = "output/" + input.value + "boundary/"
+
     # Minus 1 for the parameters.txt file
-
-    output_data_location = "output/" + input.value
-
     NOF = len(os.listdir(output_data_location)) - 1
 
     fig = make_subplots(
@@ -156,9 +128,6 @@ def create_boundary_animation_3d_from_files(grid_size, input, animation_duration
     
     fig.update_layout(
         scene=dict(
-            xaxis=dict(range=[0, grid_size], autorange=False),
-            yaxis=dict(range=[0, grid_size], autorange=False),
-            zaxis=dict(range=[0, grid_size], autorange=False),
             aspectmode='cube',
             camera=dict(
                 eye=dict(x=1.5, y=1.5, z=1.5)  # Initial camera position
@@ -212,10 +181,22 @@ def create_boundary_animation_3d_from_files(grid_size, input, animation_duration
 
     fig.show()
 
-def create_boundary_animation_sp_from_files(grid_size, input, animation_duration=0, save_animation=False):
+    if save_video:
+        images = []
+        for frame in fig.frames:
+            fig.update(data=frame.data)
+            img_bytes = fig.to_image(format="jpg")
+            images.append(imageio.imread(img_bytes))
+
+        imageio.mimsave("output/videos/" + f"{datetime.today().strftime('%Y-%m-%d')}.mp4", images, fps=1)
+    
+    if save_html:
+        fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d')}.html")
+
+def view_boundary_animation_sp_from_files(input, grid_size, animation_duration=0, save_video=False, save_html=False):
     # Minus 1 for the parameters.txt file
 
-    output_data_location = "output/" + input.value
+    output_data_location = "output/" + input.value + "boundary/"
 
     NOF = len(os.listdir(output_data_location)) - 1
 
@@ -309,13 +290,16 @@ def create_boundary_animation_sp_from_files(grid_size, input, animation_duration
     fig.frames = animation_frames
     fig.show()
 
-    if save_animation:
+    if save_video:
         images = []
         for frame in fig.frames:
             fig.update(data=frame.data)
             img_bytes = fig.to_image(format="jpg")
             images.append(imageio.imread(img_bytes))
 
-        imageio.mimsave("output/" + f"{datetime.today().strftime('%Y-%m-%d')}.mp4", images, fps=1)
+        imageio.mimsave("output/videos/" + f"{datetime.today().strftime('%Y-%m-%d')}.mp4", images, fps=1)
+    
+    if save_html:
+        fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d')}.html")
 
 
