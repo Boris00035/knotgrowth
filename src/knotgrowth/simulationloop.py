@@ -87,7 +87,7 @@ def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_ite
         alpha = 5.0
         epsilonBar = 1e-6
 
-        current_grid = calc.auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon0, epsilonBar, alpha) # 71.6 sec (is ran num_iterations amount of times)
+        next_grid = calc.auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon0, epsilonBar, alpha) # 71.6 sec (is ran num_iterations amount of times)
 
         # Calculate volumes
         # volumes = calc.calculate_3d_volumes(current_grid, num_labels)
