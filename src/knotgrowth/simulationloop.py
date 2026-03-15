@@ -2,7 +2,6 @@ import numpy as np
 from scipy.ndimage import distance_transform_edt
 from tqdm.auto import trange
 import time
-
 import knotgrowth.calculationfunctions as calc
 
 def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation):
