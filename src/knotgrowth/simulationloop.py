@@ -35,20 +35,14 @@ def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations,
     for iter_num in trange(num_iterations, desc='simulation loop'):
 
         if target_volumes[5] > 170: #115 # smaller grid
-
-            
             dt = 0.8*growth_coeff #3.9
             volume_growth_rate = 40*growth_coeff
 
         if target_volumes[5] > 530: #mid
-            
-            
             dt =1.6*growth_coeff #4.37   # try 7 8 or 5.5
             volume_growth_rate = 80*growth_coeff
 
         if target_volumes[5] > 930: #large
-            
-            
             dt=1.6*growth_coeff  
             volume_growth_rate = 80*growth_coeff
         
