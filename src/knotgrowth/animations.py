@@ -29,18 +29,23 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, save_gri
     # + 1 because of the animation folder (the blender rendered animation of the changing knot)
     assert len(os.listdir(animation_input)) == NOF + 1, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
     
-    output_folder = "output/" + "raw/" + animation_input + datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + "/"
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
+    output_folder = "output/" + "raw/" + animation_input + datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
+    output_folder_grid = output_folder + "/grid/"
+    output_folder_boundary = output_folder + "/boundary/"
+    
+    if not os.path.exists(output_folder_grid):
+        os.makedirs(output_folder_grid)
+    if not os.path.exists(output_folder_boundary):
+        os.makedirs(output_folder_boundary)
 
     for frame in trange(1, NOF + 1, desc='frame loop'):
         points = np.load(animation_input + f"frame{frame}" + ".npy")
         grid, boundary = gr.get_grid_after_growth(points, NOI, num_labels, grid_size)
 
         if save_grid:
-            np.save(output_folder + "grid/" f"frame{frame}" + ".npy", grid)
+            np.save(output_folder_grid + f"frame{frame}" + ".npy", grid)
         if save_boundary:
-            np.save(output_folder + "boundary/" f"frame{frame}" + ".npy", boundary)
+            np.save(output_folder_boundary + f"frame{frame}" + ".npy", boundary)
 
 # NOT DONE
 def view_grid_animation_3d(input, num_labels,  animation_duration=0, save_video=False, save_html=False):
