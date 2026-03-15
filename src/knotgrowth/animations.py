@@ -5,7 +5,7 @@ from enum import Enum
 import numpy as np
 import os
 from datetime import datetime
-import PIL
+import PIL.Image as im
 import imageio
 
 import knotgrowth.visualizing as vis
@@ -41,7 +41,7 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, save_gri
             np.save(output_folder + "boundary/" f"frame{frame}" + ".npy", boundary)
 
 
-def view_boundary_animation_3d_from_files(input, animation_duration=0, save_video=False, save_html=False):
+def view_boundary_animation_3d(input, animation_duration=0, save_video=False, save_html=False):
 
     output_data_location = "output/" + input.value + "boundary/"
 
@@ -125,7 +125,7 @@ def view_boundary_animation_3d_from_files(input, animation_duration=0, save_vide
         )
 
         img_path = "animations/" + input.value + "animation/" + f"{frame:04d}.png"
-        img = PIL.Image.open(img_path)
+        img = im.open(img_path)
         image_data = go.Image(z=img)
 
 
@@ -147,7 +147,7 @@ def view_boundary_animation_3d_from_files(input, animation_duration=0, save_vide
     if save_html:
         fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d')}.html")
 
-def view_boundary_animation_sp_from_files(input, grid_size, animation_duration=0, save_video=False, save_html=False):
+def view_boundary_animation_sp(input, grid_size, animation_duration=0, save_video=False, save_html=False):
     # Minus 1 for the parameters.txt file
 
     output_data_location = "output/" + input.value + "boundary/"
@@ -235,7 +235,7 @@ def view_boundary_animation_sp_from_files(input, grid_size, animation_duration=0
         )
 
         img_path = "animations/" + input.value + "animation/" + f"{frame:04d}.png"
-        img = PIL.Image.open(img_path)
+        img = im.open(img_path)
         image_data = go.Image(z=img)
 
 
