@@ -7,6 +7,7 @@ import os
 from datetime import datetime
 import PIL.Image as im
 import imageio
+import matplotlib.pyplot as plt
 
 import knotgrowth.visualizing as vis
 import knotgrowth.growth as gr
@@ -17,6 +18,7 @@ class possible_inputs(Enum):
     unknot_dent = "unknot/dent/"
     unknot_twist = "unknot/twist/"
     unknot_double_twist = "unknot/double_twist/"
+    test = "test/"
     # trefoil_dent = "trefoil/dent/"
     # trefoil_twist = "trefoil/twist/"
 
@@ -39,6 +41,155 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, save_gri
             np.save(output_folder + "grid/" f"frame{frame}" + ".npy", grid)
         if save_boundary:
             np.save(output_folder + "boundary/" f"frame{frame}" + ".npy", boundary)
+
+# NOT DONE
+def view_grid_animation_3d(input, num_labels,  animation_duration=0, save_video=False, save_html=False):
+    # Get tab20 colors
+    tab20_colors = plt.get_cmap("tab20").colors
+    colors = ['rgb(%d,%d,%d)' % (r*255, g*255, b*255) for (r, g, b) in tab20_colors]
+
+    fig = make_subplots(
+        rows=1,
+        cols=2,
+        specs=[[{"type": "scene"}, {"type": "image"}]],
+        column_widths=[0.7, 0.3]
+    )
+
+    # add trace for each colour
+    for label in range(2, num_labels + 1):        
+        fig.add_trace(go.Scatter3d(
+            x=[0],
+            y=[0],
+            z=[0],
+            mode='markers',
+            marker=dict(
+                size=8,  # Size of the squares
+                color=colors[(label-2-1) % 20],  # Solid color for this label
+                opacity=1.0,  # Fully opaque
+                symbol='square',  # Square markers
+                line=dict(width=0),  # No border line
+            ),
+            name=f'Label{label}'
+        ),
+        row=1,
+        col=1
+    )
+
+    fig.update_layout(
+        scene=dict(
+            aspectmode='cube',
+            camera=dict(
+                eye=dict(x=1.5, y=1.5, z=1.5)  # Initial camera position
+            )
+        ),
+        autosize=True,
+        margin=dict(l=0, r=0, b=0, t=0),
+        scene_camera=dict(
+            up=dict(x=0, y=0, z=1),
+            center=dict(x=0, y=0, z=0),
+            eye=dict(x=1.5, y=1.5, z=1.5)
+        )
+    )
+
+    # add trace for the blender pictures
+    fig.add_trace(
+        go.Image(
+            z=np.zeros((10,10)),
+            name="animation"
+            ),
+        row=1,
+        col=2,
+    )
+    
+    fig.update_layout(
+        scene=dict(
+            aspectmode='cube',
+            camera=dict(
+                eye=dict(x=1.5, y=1.5, z=1.5)  # Initial camera position
+            )
+        ),
+        autosize=True,
+        margin=dict(l=0, r=0, b=0, t=0),
+    )
+
+    # Add play button
+    output_data_location = "output/" + input.value + "grid/"
+    NOF = len(os.listdir(output_data_location))
+
+    fig.update_layout(
+        updatemenus=[dict(
+            type="buttons",
+            buttons=[dict(label="Play",
+                          method="animate",
+                          args=[None])],
+        )],
+        sliders=[{
+            "steps": [
+                {
+                    "method": "animate",
+                    "args": [[str(k)], dict(mode="immediate", frame=dict(duration=animation_duration, redraw=True))],
+                    "label": str(k)
+                }
+                for k in range(0, NOF)
+            ]
+        }]
+    )
+
+    animation_frames = []
+
+
+    for frame_num in range(1, NOF + 1):
+        grid = np.load(output_data_location + f"frame{frame_num}" + ".npy")
+
+        new_frame = go.Frame()
+
+        for label in range(2, num_labels + 1):
+            mask = (grid == label)
+            if not np.any(mask):
+                continue
+                
+            # Get coordinates
+            x, y, z = np.where(mask)
+            
+            frame_data = dict(
+                type="scatter3d",
+                x=x,
+                y=y,
+                z=z,
+            )
+
+            new_frame.update_traces(
+                data=dict(color="RoyalBlue"),
+                selector=dict(name=f'Label{label}'),
+                row=1,
+                col=1
+                )
+
+
+        img_path = "animations/" + input.value + "animation/" + f"{frame:04d}.png"
+        img = im.open(img_path)
+        image_data = go.Image(z=img)
+
+
+        animation_frames.append(new_frame, name=f"{frame_num}")
+
+    fig.frames = animation_frames
+
+    fig.show()
+
+
+    if save_video:
+        images = []
+        for frame in fig.frames:
+            fig.update(data=frame.data)
+            img_bytes = fig.to_image(format="jpg")
+            images.append(imageio.imread(img_bytes))
+
+        imageio.mimsave("output/videos/" + f"{datetime.today().strftime('%Y-%m-%d')}.mp4", images, fps=1)
+    
+    if save_html:
+        fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d')}.html")
+
 
 
 def view_boundary_animation_3d(input, animation_duration=0, save_video=False, save_html=False):
@@ -85,8 +236,6 @@ def view_boundary_animation_3d(input, animation_duration=0, save_video=False, sa
                 eye=dict(x=1.5, y=1.5, z=1.5)  # Initial camera position
             )
         ),
-        width=2200,
-        height=1000,
         autosize=True,
         margin=dict(l=0, r=0, b=0, t=0),
     )
@@ -184,8 +333,6 @@ def view_boundary_animation_sp(input, grid_size, animation_duration=0, save_vide
     fig.update_layout(
         xaxis1=dict(range=[-3, 3]),
         yaxis1=dict(range=[-3, 3], scaleanchor="x"),
-        width=1400,
-        height=1000,
         autosize=True,
         margin=dict(l=0, r=0, b=0, t=0),
     )
