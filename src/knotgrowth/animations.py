@@ -13,18 +13,18 @@ import knotgrowth.growth as gr
 
 
 class possible_inputs(Enum):
-    unknot_circle_boundary = "unknot/circle/"
-    unknot_dent_boundary = "unknot/dent/"
-    unknot_twist_boundary = "unknot/twist/"
-    unknot_double_twist_boundary = "unknot/double_twist/"
-    # trefoil_dent_boundary = "trefoil/dent/boundary/"
-    # trefoil_twist_boundary = "trefoil/twist/boundary/"
+    unknot_circle = "unknot/circle/"
+    unknot_dent = "unknot/dent/"
+    unknot_twist = "unknot/twist/"
+    unknot_double_twist = "unknot/double_twist/"
+    # trefoil_dent = "trefoil/dent/"
+    # trefoil_twist = "trefoil/twist/"
 
 
-def generate_points(grid_size, NOI, NOF, num_cell_segments, input, save_output=True):
+# Not done, dont use
+def generate_points(grid_size, NOI, NOF, num_labels, input, save_output=True):
 
     animation_input = "animations/" + input.value
-
     # + 1 because of the animation folder (the blender rendered animation of the changing knot)
     assert len(os.listdir(animation_input)) == NOF + 1, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
 
@@ -39,25 +39,16 @@ def generate_points(grid_size, NOI, NOF, num_cell_segments, input, save_output=T
         points = np.load(animation_input + f"frame{frame}" + ".npy")
         lined_grid = gr.get_boundary_after_growth(points, NOI, num_cell_segments, grid_size)
         
-        mask = (lined_grid == 2)
-    
+        mask = (lined_grid == 2) 
         boundary_points = np.where(mask)
-        
-        frame_data = dict(
-            type="scatter3d",
-            x=boundary_points[0],
-            y=boundary_points[1],
-            z=boundary_points[2],
-        )
 
         if save_output:
             np.save(output_folder + f"frame{frame}" + ".npy", boundary_points)
 
 
-def generate_boundary_points(grid_size, NOI, NOF, num_cell_segments, input, save_output=True):
+def generate_boundary_points(grid_size, NOI, NOF, num_labels, input, save_output=True):
 
     animation_input = "animations/" + input.value
-
     # + 1 because of the animation folder (the blender rendered animation of the changing knot)
     assert len(os.listdir(animation_input)) == NOF + 1, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
 
@@ -70,18 +61,10 @@ def generate_boundary_points(grid_size, NOI, NOF, num_cell_segments, input, save
 
     for frame in trange(1, NOF + 1, desc='frame loop'):
         points = np.load(animation_input + f"frame{frame}" + ".npy")
-        lined_grid = gr.get_boundary_after_growth(points, NOI, num_cell_segments, grid_size)
+        lined_grid = gr.get_boundary_after_growth(points, NOI, num_labels, grid_size)
         
         mask = (lined_grid == 2)
-    
         boundary_points = np.where(mask)
-        
-        frame_data = dict(
-            type="scatter3d",
-            x=boundary_points[0],
-            y=boundary_points[1],
-            z=boundary_points[2],
-        )
 
         if save_output:
             np.save(output_folder + f"frame{frame}" + ".npy", boundary_points)

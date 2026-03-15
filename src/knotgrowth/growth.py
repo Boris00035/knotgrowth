@@ -5,14 +5,13 @@ import knotgrowth.calculationfunctions as calc
 
 import numpy as np
 
-def get_boundary_after_growth(starting_points, num_iterations, num_cell_segments, grid_size, knot_relaxation=False):
+def get_boundary_after_growth(starting_points, num_iterations, num_labels, grid_size, knot_relaxation=False):
 
     # generate sigma matrix
     scaling = 0.6    # The overall scaling of the initial knot. Choose between 0.55-0.8    
     tube_rad=2.4     #Initial tube radius. Choose around 2-3
     connectivity_padding = 3
     mask_penalty = np.inf #1e9
-    num_labels = num_cell_segments + 1
 
     sigma = calc.generate_sigma_matrix(num_labels, 0, 2.9, 0.8, 4) # diag, background, adj, nonadj
 
@@ -40,7 +39,7 @@ def get_boundary_after_growth(starting_points, num_iterations, num_cell_segments
     label_grid = gg.points_to_voxel_grid(
         pts_smooth, 
         grid_size=grid_size,
-        num_segments=num_cell_segments,
+        num_segments=num_labels - 1,
         scale=scaling,   # main was 0.65
         tube_radius=tube_rad,  #main 2
         padding=0.1
