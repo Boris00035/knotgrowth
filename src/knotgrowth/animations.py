@@ -44,9 +44,7 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, save_gri
 def view_boundary_animation_3d(input, animation_duration=0, save_video=False, save_html=False):
 
     output_data_location = "output/" + input.value + "boundary/"
-
-    # Minus 1 for the parameters.txt file
-    NOF = len(os.listdir(output_data_location)) - 1
+    NOF = len(os.listdir(output_data_location))
 
     fig = make_subplots(
         rows=1,
@@ -148,11 +146,9 @@ def view_boundary_animation_3d(input, animation_duration=0, save_video=False, sa
         fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d')}.html")
 
 def view_boundary_animation_sp(input, grid_size, animation_duration=0, save_video=False, save_html=False):
-    # Minus 1 for the parameters.txt file
 
     output_data_location = "output/" + input.value + "boundary/"
-
-    NOF = len(os.listdir(output_data_location)) - 1
+    NOF = len(os.listdir(output_data_location))
 
     fig = make_subplots(
         rows=1,
