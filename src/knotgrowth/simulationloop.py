@@ -5,23 +5,23 @@ import time
 
 import knotgrowth.calculationfunctions as calc
 
-def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation):
+def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation):
                 
     # visualize_3d_slices(calc.boundary_of_grid(current_grid), 0, num_labels + 1, view=(10,10), figsize=(15,15))
-    print(f"Euler characteristic: {calc.compute_surface_euler_characteristic(current_grid, background_label=1)}")
+    print(f"Euler characteristic: {calc.compute_surface_euler_characteristic(grid, background_label=1)}")
 
-    target_volumes = calc.calculate_3d_volumes(current_grid, num_labels)
+    target_volumes = calc.calculate_3d_volumes(grid, num_labels)
 
     # seed regions code
-    seed_masks = {label: np.zeros_like(current_grid, dtype=bool) for label in range(2, num_labels + 1)}
+    seed_masks = {label: np.zeros_like(grid, dtype=bool) for label in range(2, num_labels + 1)}
 
     for label in range(2, num_labels + 1): # This for loop takes 111 seconds (distance_transform_edt takes 0.01 sec and is run approx num_labels*len(coords) times)
-        coords = np.argwhere(current_grid == label)
+        coords = np.argwhere(grid == label)
         if len(coords) > 0:
             # num = 40 means there are 40 seed points at each cell region (just choose arbitrarily large)
             selected_indices = coords[np.linspace(0, len(coords) - 1, num=200, dtype=int)]
             for z0, y0, x0 in selected_indices:
-                mask = np.zeros_like(current_grid, dtype=bool)
+                mask = np.zeros_like(grid, dtype=bool)
                 mask[z0, y0, x0] = True
                 dist_map = distance_transform_edt(~mask)
                 seed_masks[label] |= (dist_map <= penalty_radius)
@@ -32,7 +32,6 @@ def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_ite
     volume_growth_rate = 20*growth_coeff
 
     grid_shape = (grid_size,grid_size,grid_size)
-    next_grid = np.empty(grid_shape) 
 
     for iter_num in trange(num_iterations, desc='simulation loop'):
 
@@ -65,11 +64,11 @@ def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_ite
                 target_volumes[label_id] = target_volumes[label_id] + volume_growth_rate
 
         # Compute psi fields
-        psies = calc.psi_3d_optimized(current_grid, sigma, dt) # 1.35 sec
+        psies = calc.psi_3d_optimized(grid, sigma, dt) # 1.35 sec
 
         # Apply connectivity preservation
         for lbl in range(1, num_labels + 1): # 0.18 sec
-            dilated = calc.dilate_boundary_3d(current_grid, np.int16(lbl), connectivity_padding)
+            dilated = calc.dilate_boundary_3d(grid, np.int16(lbl), connectivity_padding)
             # Apply penalty uniformly to non-boundary points
             psies[lbl][~dilated] += mask_penalty
 
@@ -87,7 +86,7 @@ def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_ite
         alpha = 5.0
         epsilonBar = 1e-6
 
-        next_grid = calc.auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon0, epsilonBar, alpha) # 71.6 sec (is ran num_iterations amount of times)
+        grid = calc.auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon0, epsilonBar, alpha) # 71.6 sec (is ran num_iterations amount of times)
 
         # Calculate volumes
         # volumes = calc.calculate_3d_volumes(current_grid, num_labels)
@@ -100,7 +99,7 @@ def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_ite
         # })
 
         print("\n")
-        print(f"Euler characteristic: {calc.compute_surface_euler_characteristic(current_grid, background_label=1)}")
+        print(f"Euler characteristic: {calc.compute_surface_euler_characteristic(grid, background_label=1)}")
         print("\n")
 
         # Visualization
@@ -114,7 +113,7 @@ def simulation_loop(current_grid, num_labels, grid_size, penalty_radius, num_ite
             #np.save(f"pts_reidemeister{iter_num}.npy", next_grid) # save here
     
     print("3D Simulation complete")
-    return next_grid
+    return grid
 
 
 
