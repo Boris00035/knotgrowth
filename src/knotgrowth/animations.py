@@ -47,8 +47,7 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, save_gri
         if save_boundary:
             np.save(output_folder_boundary + f"frame{frame}" + ".npy", boundary)
 
-# NOT DONE
-def view_grid_animation_3d(input, num_labels,  animation_duration=0, save_video=False, save_html=False):
+def view_grid_animation_3d(input, num_labels,  animation_duration=0, show_animation=True, save_video=False, save_html=False):
     # Get tab20 colors
     tab20_colors = plt.get_cmap("tab20").colors
     colors = ['rgb(%d,%d,%d)' % (r*255, g*255, b*255) for (r, g, b) in tab20_colors]
@@ -145,43 +144,53 @@ def view_grid_animation_3d(input, num_labels,  animation_duration=0, save_video=
 
     for frame_num in range(1, NOF + 1):
         grid = np.load(output_data_location + f"frame{frame_num}" + ".npy")
-
-        new_frame = go.Frame()
+        traces = []
 
         for label in range(2, num_labels + 1):
             mask = (grid == label)
-            if not np.any(mask):
-                continue
-                
+            if np.any(mask):
+                x, y, z = np.where(mask)
+            else:    
+                x, y, z = [], [], []
+
             # Get coordinates
-            x, y, z = np.where(mask)
             
-            frame_data = dict(
+            trace = dict(
                 type="scatter3d",
+                mode='markers',
                 x=x,
                 y=y,
                 z=z,
+                marker=dict(
+                    size=8,
+                    color=colors[(label-2-1) % 20],
+                    symbol="square",
+                    opacity=1.0
+                ),
+                name=f"Label{label}",
             )
 
-            new_frame.update_traces(
-                data=dict(color="RoyalBlue"),
-                selector=dict(name=f'Label{label}'),
-                row=1,
-                col=1
-                )
+            traces.append(trace)
 
-
-        img_path = "animations/" + input.value + "animation/" + f"{frame:04d}.png"
+        # update blender animation
+        img_path = "animations/" + input.value + "animation/" + f"{frame_num:04d}.png"
         img = im.open(img_path)
-        image_data = go.Image(z=img)
-
-
-        animation_frames.append(new_frame, name=f"{frame_num}")
+        traces.append(dict(
+            type="image",
+            z=img,
+            ))
+                
+        new_frame = go.Frame(
+            data=traces,
+            name=f"{frame_num}",
+        )
+        
+        animation_frames.append(new_frame)
 
     fig.frames = animation_frames
 
-    fig.show()
-
+    if show_animation:
+        fig.show()
 
     if save_video:
         images = []
