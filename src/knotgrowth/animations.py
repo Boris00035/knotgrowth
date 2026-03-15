@@ -21,53 +21,24 @@ class possible_inputs(Enum):
     # trefoil_twist = "trefoil/twist/"
 
 
-# Not done, dont use
-def generate_points(grid_size, NOI, NOF, num_labels, input, save_output=True):
+def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, save_grid=False, save_boundary=False):
 
     animation_input = "animations/" + input.value
     # + 1 because of the animation folder (the blender rendered animation of the changing knot)
     assert len(os.listdir(animation_input)) == NOF + 1, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
-
-    print(f"parameters: NOI: {NOI}, grid_size: {grid_size}")
     
     output_folder = "output/" + "raw/" + animation_input + datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + "/"
-    
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
     for frame in trange(1, NOF + 1, desc='frame loop'):
         points = np.load(animation_input + f"frame{frame}" + ".npy")
-        lined_grid = gr.get_boundary_after_growth(points, NOI, num_cell_segments, grid_size)
-        
-        mask = (lined_grid == 2) 
-        boundary_points = np.where(mask)
+        grid, boundary = gr.get_grid_after_growth(points, NOI, num_labels, grid_size)
 
-        if save_output:
-            np.save(output_folder + f"frame{frame}" + ".npy", boundary_points)
-
-
-def generate_boundary_points(grid_size, NOI, NOF, num_labels, input, save_output=True):
-
-    animation_input = "animations/" + input.value
-    # + 1 because of the animation folder (the blender rendered animation of the changing knot)
-    assert len(os.listdir(animation_input)) == NOF + 1, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
-
-    print(f"parameters: NOI: {NOI}, grid_size: {grid_size}")
-    
-    output_folder = "output/" + "raw/" + animation_input + datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + "/"
-    
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    for frame in trange(1, NOF + 1, desc='frame loop'):
-        points = np.load(animation_input + f"frame{frame}" + ".npy")
-        lined_grid = gr.get_boundary_after_growth(points, NOI, num_labels, grid_size)
-        
-        mask = (lined_grid == 2)
-        boundary_points = np.where(mask)
-
-        if save_output:
-            np.save(output_folder + f"frame{frame}" + ".npy", boundary_points)
+        if save_grid:
+            np.save(output_folder + "grid/" f"frame{frame}" + ".npy", grid)
+        if save_boundary:
+            np.save(output_folder + "boundary/" f"frame{frame}" + ".npy", boundary)
 
 
 def view_boundary_animation_3d_from_files(input, animation_duration=0, save_video=False, save_html=False):

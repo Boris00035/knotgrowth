@@ -5,7 +5,7 @@ import knotgrowth.calculationfunctions as calc
 
 import numpy as np
 
-def get_boundary_after_growth(starting_points, num_iterations, num_labels, grid_size, knot_relaxation=False):
+def get_grid_after_growth(starting_points, num_iterations, num_labels, grid_size, knot_relaxation=False):
 
     # generate sigma matrix
     scaling = 0.6    # The overall scaling of the initial knot. Choose between 0.55-0.8    
@@ -56,4 +56,7 @@ def get_boundary_after_growth(starting_points, num_iterations, num_labels, grid_
     final_grid = sl.simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation)
     lined_grid = lf.draw_line_field(final_grid, grid_size, num_labels)
 
-    return lined_grid
+    mask = (lined_grid == 2)
+    boundary = np.where(mask)
+
+    return final_grid, boundary
