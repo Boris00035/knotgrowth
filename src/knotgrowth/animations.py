@@ -48,6 +48,13 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, save_gri
             np.save(output_folder_boundary + f"frame{frame}" + ".npy", boundary)
 
 def view_grid_animation_3d(input, num_labels,  animation_duration=0, show_animation=True, save_video=False, save_html=False):
+    grid_output_data_location = "output/" + input.value + "grid/"
+    boundary_output_data_location = "output/" + input.value + "boundary/"
+    
+    assert len(os.listdir(grid_output_data_location)) == len(os.listdir(boundary_output_data_location)), f"grid frames: {len(os.listdir(grid_output_data_location))}, boundary frames: {len(os.listdir(boundary_output_data_location))}"
+    NOF = len(os.listdir(grid_output_data_location))
+    
+    
     # Get tab20 colors
     tab20_colors = plt.get_cmap("tab20").colors
     colors = ['rgb(%d,%d,%d)' % (r*255, g*255, b*255) for (r, g, b) in tab20_colors]
@@ -95,6 +102,25 @@ def view_grid_animation_3d(input, num_labels,  animation_duration=0, show_animat
         )
     )
 
+    # add trace for boundary
+    fig.add_trace(go.Scatter3d(
+            x=[0],
+            y=[0],
+            z=[0],
+            mode='markers',
+            marker=dict(
+                size=8,  # Size of the squares
+                color=colors[(label-2-1) % 20],  # Solid color for this label
+                opacity=1.0,  # Fully opaque
+                symbol='square',  # Square markers
+                line=dict(width=0),  # No border line
+            ),
+            name='boundary'
+        ),
+        row=1,
+        col=1
+    )
+
     # add trace for the blender pictures
     fig.add_trace(
         go.Image(
@@ -117,9 +143,6 @@ def view_grid_animation_3d(input, num_labels,  animation_duration=0, show_animat
     )
 
     # Add play button
-    output_data_location = "output/" + input.value + "grid/"
-    NOF = len(os.listdir(output_data_location))
-
     fig.update_layout(
         updatemenus=[dict(
             type="buttons",
@@ -143,7 +166,7 @@ def view_grid_animation_3d(input, num_labels,  animation_duration=0, show_animat
 
 
     for frame_num in range(1, NOF + 1):
-        grid = np.load(output_data_location + f"frame{frame_num}" + ".npy")
+        grid = np.load(grid_output_data_location + f"frame{frame_num}" + ".npy")
         traces = []
 
         for label in range(2, num_labels + 1):
@@ -171,6 +194,24 @@ def view_grid_animation_3d(input, num_labels,  animation_duration=0, show_animat
             )
 
             traces.append(trace)
+
+        # update boundary animation
+        boundary_points = np.load(boundary_output_data_location + f"frame{frame_num}" + ".npy")
+        boundary_trace = dict(
+            type="scatter3d",
+            mode='markers',
+            x=boundary_points[0],
+            y=boundary_points[1],
+            z=boundary_points[2],
+            marker=dict(
+                size=8,
+                color="Black",
+                symbol="square",
+                opacity=1.0
+            ),
+            name="boundary",
+        )
+        traces.append(boundary_trace)
 
         # update blender animation
         img_path = "animations/" + input.value + "animation/" + f"{frame_num:04d}.png"
