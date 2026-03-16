@@ -230,6 +230,9 @@ def view_grid_animation_3d(input, num_labels,  animation_duration=0, show_animat
 
     fig.frames = animation_frames
 
+    initial_frame = 0
+    fig.update(data=fig.frames[initial_frame].data)
+
     if show_animation:
         fig.show()
 
