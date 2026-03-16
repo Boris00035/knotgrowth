@@ -338,6 +338,9 @@ def view_boundary_animation_3d(input, animation_duration=0, save_video=False, sa
 
     fig.frames = animation_frames
 
+    initial_frame = 0
+    fig.update(data=fig.frames[initial_frame].data)
+
     fig.show()
 
     if save_video:
@@ -443,6 +446,10 @@ def view_boundary_animation_sp(input, grid_size, animation_duration=0, save_vide
         animation_frames.append(go.Frame(data = [frame_data, image_data], name=str(len(animation_frames))))
 
     fig.frames = animation_frames
+
+    initial_frame = 0
+    fig.update(data=fig.frames[initial_frame].data)
+
     fig.show()
 
     if save_video:
