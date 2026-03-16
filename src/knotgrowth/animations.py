@@ -199,10 +199,10 @@ def view_grid_animation_3d(input, num_labels,  animation_duration=0, show_animat
             img_bytes = fig.to_image(format="jpg")
             images.append(imageio.imread(img_bytes))
 
-        imageio.mimsave("output/videos/" + f"{datetime.today().strftime('%Y-%m-%d')}.mp4", images, fps=1)
+        imageio.mimsave("output/videos/" + f"{datetime.today().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]}.mp4", images, fps=1)
     
     if save_html:
-        fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d')}.html")
+        fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]}.html")
 
 
 
@@ -303,10 +303,10 @@ def view_boundary_animation_3d(input, animation_duration=0, save_video=False, sa
             img_bytes = fig.to_image(format="jpg")
             images.append(imageio.imread(img_bytes))
 
-        imageio.mimsave("output/videos/" + f"{datetime.today().strftime('%Y-%m-%d')}.mp4", images, fps=1)
+        imageio.mimsave("output/videos/" + f"{datetime.today().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]}.mp4", images, fps=1)
     
     if save_html:
-        fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d')}.html")
+        fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]}.html")
 
 def view_boundary_animation_sp(input, grid_size, animation_duration=0, save_video=False, save_html=False):
 
@@ -408,9 +408,9 @@ def view_boundary_animation_sp(input, grid_size, animation_duration=0, save_vide
             img_bytes = fig.to_image(format="jpg")
             images.append(imageio.imread(img_bytes))
 
-        imageio.mimsave("output/videos/" + f"{datetime.today().strftime('%Y-%m-%d')}.mp4", images, fps=1)
+        imageio.mimsave("output/videos/" + f"{datetime.today().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]}.mp4", images, fps=1)
     
     if save_html:
-        fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d')}.html")
+        fig.write_html("output/interactive_html/" + f"{datetime.today().strftime('%Y-%m-%d_%H-%M-%S-%f')[:-3]}.html")
 
 
