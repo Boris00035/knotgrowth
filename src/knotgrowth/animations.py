@@ -23,7 +23,7 @@ class possible_inputs(Enum):
     # trefoil_twist = "trefoil/twist/"
 
 
-def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, save_grid=False, save_boundary=False):
+def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, start_frame=1, save_grid=False, save_boundary=False):
 
     animation_input = "animations/" + input.value
     # + 1 because of the animation folder (the blender rendered animation of the changing knot)
@@ -38,7 +38,7 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, save_gri
     if not os.path.exists(output_folder_boundary):
         os.makedirs(output_folder_boundary)
 
-    for frame in trange(1, NOF + 1, desc='frame loop'):
+    for frame in trange(start_frame, NOF + 1, desc='frame loop'):
         points = np.load(animation_input + f"frame{frame}" + ".npy")
         grid, boundary = gr.get_grid_after_growth(points, NOI, num_labels, grid_size)
 
