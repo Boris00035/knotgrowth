@@ -41,8 +41,7 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, start_fr
 
     for frame_num in trange(start_frame, NOF + 1, desc='frame loop'):
         points = np.load(animation_input + f"frame{frame_num}" + ".npy")
-        print("test")
-        grid, boundary = gr.get_grid_after_growth(points, NOI, num_labels, frame_num, grid_size, save_growth_process)
+        grid, boundary = gr.get_grid_after_growth(points, animation_input, NOI, num_labels, frame_num, grid_size, save_growth_process=save_growth_process)
 
         if save_grid:
             np.save(output_folder_grid + f"frame{frame_num}" + ".npy", grid)

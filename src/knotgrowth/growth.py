@@ -5,7 +5,7 @@ import knotgrowth.simulationloop as sl
 import knotgrowth.calculationfunctions as calc
 
 
-def get_grid_after_growth(starting_points, num_iterations, num_labels, grid_size, frame_num, knot_relaxation=False, save_growth_process=False):
+def get_grid_after_growth(starting_points, animation_input, num_iterations, num_labels, grid_size, frame_num, knot_relaxation=False, save_growth_process=False):
 
     # generate sigma matrix
     scaling = 0.6    # The overall scaling of the initial knot. Choose between 0.55-0.8    
@@ -53,6 +53,6 @@ def get_grid_after_growth(starting_points, num_iterations, num_labels, grid_size
     # Step 4
     sigma = calc.generate_sigma_matrix(num_labels, 0, 1.6, 0.8, 2.7)
 
-    final_grid, boundary = sl.simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation, frame_num, save_growth_process)
+    final_grid, boundary = sl.simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation, frame_num, animation_input, save_growth_process=save_growth_process)
 
     return final_grid, boundary
