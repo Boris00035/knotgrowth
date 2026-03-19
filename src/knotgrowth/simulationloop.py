@@ -91,7 +91,7 @@ def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations,
         boundary = np.where(mask)
 
         if save_growth_process:
-            growth_output_folder = output_folder + "growth/" f"frame{frame_num}/"
+            growth_output_folder = output_folder + "growth_process/" f"frame{frame_num}/"
             output_folder_grid = growth_output_folder + "/grid/"
             output_folder_boundary = growth_output_folder + "/boundary/"
 
