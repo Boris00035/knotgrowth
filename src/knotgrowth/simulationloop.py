@@ -58,6 +58,7 @@ def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations,
 
         # Compute psi fields
         psies = calc.psi_3d_optimized(grid, sigma, dt) # 1.35 sec
+        
 
         # Apply connectivity preservation
         for lbl in range(1, num_labels + 1): # 0.18 sec
