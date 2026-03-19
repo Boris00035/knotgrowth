@@ -7,7 +7,7 @@ import os
 
 import numpy as np
 
-def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation, animation_input, frame_num, save_growth_process=False):
+def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, animation_input, frame_num, save_growth_process=False):
                 
     # visualize_3d_slices(calc.boundary_of_grid(current_grid), 0, num_labels + 1, view=(10,10), figsize=(15,15))
     print(f"Euler characteristic: {calc.compute_surface_euler_characteristic(grid, background_label=1)}")
@@ -91,6 +91,7 @@ def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations,
         boundary = np.where(mask)
 
         if save_growth_process:
+            print(animation_input)
             output_folder = "output/" + "raw/" + f"{datetime.today().strftime('%Y-%m-%d_%H-%M-%S')}/" + animation_input + f"frame{frame_num}/"
             output_folder_grid = output_folder + "/grid/"
             output_folder_boundary = output_folder + "/boundary/"

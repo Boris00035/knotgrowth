@@ -52,6 +52,6 @@ def get_grid_after_growth(starting_points, num_iterations, num_labels, grid_size
     # Step 4
     sigma = calc.generate_sigma_matrix(num_labels, 0, 1.6, 0.8, 2.7)
 
-    final_grid, boundary = sl.simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation, input, frame_num, save_growth_process=save_growth_process)
+    final_grid, boundary = sl.simulation_loop(label_grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, input, frame_num, save_growth_process=save_growth_process)
 
     return final_grid, boundary
