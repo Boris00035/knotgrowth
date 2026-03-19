@@ -11,7 +11,7 @@ def main():
     # todo 2: Make a growth animation
     
     anim.generate_grids_after_growth(grid_size, num_iterations, num_frames, num_labels, possible_inputs.unknot_circle, save_boundary=True, save_grid=True)
-    anim.view_boundary_animation_3d(possible_inputs.unknot_double_twist)
+    # anim.view_boundary_animation_3d(possible_inputs.unknot_double_twist)
     # anim.view_boundary_animation_sp(possible_inputs.unknot_dent, grid_size)
     return
 
