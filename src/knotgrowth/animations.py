@@ -30,7 +30,7 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, start_fr
     # + 1 because of the animation folder (the blender rendered animation of the changing knot)
     assert len(os.listdir(animation_input)) == NOF + 1, "the amount of frames does not match the amount of frame data from the animation, should probably reexport the animation from blender"
     
-    output_folder = "output/" + "raw/" + datetime.today().strftime('%Y-%m-%d_%H-%M-%S') + animation_input
+    output_folder = "output/" + "raw/" + f"{datetime.today().strftime('%Y-%m-%d_%H-%M-%S')}/" + animation_input
     output_folder_grid = output_folder + "/grid/"
     output_folder_boundary = output_folder + "/boundary/"
     
@@ -41,6 +41,7 @@ def generate_grids_after_growth(grid_size, NOI, NOF, num_labels, input, start_fr
 
     for frame_num in trange(start_frame, NOF + 1, desc='frame loop'):
         points = np.load(animation_input + f"frame{frame_num}" + ".npy")
+        print("test")
         grid, boundary = gr.get_grid_after_growth(points, NOI, num_labels, frame_num, grid_size, save_growth_process)
 
         if save_grid:
