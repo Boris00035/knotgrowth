@@ -5,7 +5,6 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = "==3.11.13"
 dependencies = [
-    "bpy>=4.4.0",
     "cython>=3.2.4",
     "imageio[ffmpeg]>=2.37.3",
     "kaleido>=1.2.0",
