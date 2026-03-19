@@ -18,6 +18,7 @@ class possible_inputs(Enum):
     unknot_dent = "unknot/dent/"
     unknot_twist = "unknot/twist/"
     unknot_double_twist = "unknot/double_twist/"
+    trefoil_trefoil = "trefoil/trefoil/"
     test = "test/"
     # trefoil_dent = "trefoil/dent/"
     # trefoil_twist = "trefoil/twist/"
