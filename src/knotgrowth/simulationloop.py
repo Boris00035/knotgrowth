@@ -1,13 +1,10 @@
 import numpy as np
 from scipy.ndimage import distance_transform_edt
 from tqdm.auto import trange
-from datetime import datetime
-import os
-
+import time
 import knotgrowth.calculationfunctions as calc
-import knotgrowth.linefield as lf
 
-def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation, frame_num, animation_input, save_growth_process=False):
+def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations, sigma, connectivity_padding, mask_penalty, region_history, volume_conservation):
                 
     # visualize_3d_slices(calc.boundary_of_grid(current_grid), 0, num_labels + 1, view=(10,10), figsize=(15,15))
     print(f"Euler characteristic: {calc.compute_surface_euler_characteristic(grid, background_label=1)}")
@@ -82,32 +79,34 @@ def simulation_loop(grid, num_labels, grid_size, penalty_radius, num_iterations,
         alpha = 5.0
         epsilonBar = 1e-6
 
-
         grid = calc.auction_assignment_3d(psies, target_volumes, grid_shape, num_labels, epsilon0, epsilonBar, alpha) # 71.6 sec (is ran num_iterations amount of times)
-        lined_grid = lf.draw_line_field(grid, grid_size, num_labels)
 
-        mask = (lined_grid == 2)
-        boundary = np.where(mask)
-        
-        if save_growth_process:
-            output_folder = "output/" + "raw/" + f"{datetime.today().strftime('%Y-%m-%d_%H-%M-%S')}/" + animation_input + "growth_process/" + f"frame{frame_num}/"
-            output_folder_grid = output_folder + "/grid/"
-            output_folder_boundary = output_folder + "/boundary/"
+        # Calculate volumes
+        # volumes = calc.calculate_3d_volumes(current_grid, num_labels)
+        # total_vol = sum(volumes.values())
+        # volume_conservation.append(total_vol == total_voxels)
 
-            if not os.path.exists(output_folder_grid):
-                os.makedirs(output_folder_grid)
-            if not os.path.exists(output_folder_boundary):
-                os.makedirs(output_folder_boundary)
-
-            np.save(output_folder_grid + f"iter{iter_num}" + ".npy", grid)
-            np.save(output_folder_boundary + f"iter{iter_num}" + ".npy", boundary)
+        # region_history.append({
+        #     'iteration': iter_num,
+        #     'volumes': volumes
+        # })
 
         print("\n")
         print(f"Euler characteristic: {calc.compute_surface_euler_characteristic(grid, background_label=1)}")
         print("\n")
+
+        # Visualization
+        # if iter_num % 1 == 0 or iter_num == num_iterations - 1:
+            #visualize_3d_slices(current_grid, iter_num, num_labels)
+            # visualize_3d_slices(current_grid, iter_num, num_labels + 1, view=(10,10),figsize=(15,15)) #boundary of grid()
+            
+            
+            #np.save(f"pts4_1and4_1_second_{iter_num}.npy", next_grid) # save here
+            #np.save(f"pts_granny_left_{iter_num}.npy", next_grid) # save here
+            #np.save(f"pts_reidemeister{iter_num}.npy", next_grid) # save here
     
-    
-    return grid, boundary
+    print("3D Simulation complete")
+    return grid
 
 
 
