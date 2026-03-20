@@ -489,7 +489,7 @@ def view_growth_process(input, num_labels, frame_num=None,  animation_duration=0
 
 
     for iter_num in range(1, NOF + 1):
-        grid = np.load(grid_output_data_location + f"iter{iter_num - 1}" + ".npy")
+        grid = np.load(grid_output_data_location + f"iter{iter_num}" + ".npy")
         traces = []
 
         for label in range(2, num_labels + 1):
@@ -519,7 +519,7 @@ def view_growth_process(input, num_labels, frame_num=None,  animation_duration=0
             traces.append(trace)
 
         # update boundary animation
-        boundary_points = np.load(boundary_output_data_location + f"iter{iter_num - 1}" + ".npy")
+        boundary_points = np.load(boundary_output_data_location + f"iter{iter_num}" + ".npy")
         boundary_trace = dict(
             type="scatter3d",
             mode='markers',
